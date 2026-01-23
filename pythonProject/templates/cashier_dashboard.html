@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кассир - Кинотеатр</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #388E3C 0%, #4CAF50 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            color: white;
+        }
+
+        .logout-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .sidebar-menu a:hover {
+            background: #f0f0f0;
+        }
+
+        .sidebar-menu a.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .welcome-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .welcome-card h2 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.3s;
+            min-width: 200px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-btn.sell {
+            background: #e94560;
+        }
+
+        .action-btn.refund {
+            background: #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Кинотеатр - Кассовая панель</h1>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+    </nav>
+
+    <div class="container">
+        <div class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active">🏠 Главная</a></li>
+                <li><a href="#">🎟️ Продажа билетов</a></li>
+                <li><a href="#">↩️ Возврат билетов</a></li>
+                <li><a href="#">📅 Сеансы</a></li>
+                <li><a href="#">🎫 Мои продажи</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <div class="welcome-card">
+                <h2>Добро пожаловать, Кассир!</h2>
+                <p>Используйте эту панель для продажи и возврата билетов.</p>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn sell">🎟️ Продать билет</button>
+                <button class="action-btn refund">↩️ Возврат билета</button>
+                <button class="action-btn">📅 Посмотреть сеансы</button>
+                <button class="action-btn">📊 Отчет по продажам</button>
+            </div>
+
+            <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 30px;">
+                <h3>Сегодняшние сеансы</h3>
+                <div id="today-sessions">
+                    <p>Загрузка сеансов...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // Проверка авторизации
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || user.role !== 'cashier') {
+                window.location.href = '/';
+                return;
+            }
+
+            // Загружаем сегодняшние сеансы
+            loadTodaySessions();
+        });
+
+        async function loadTodaySessions() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await fetch(`/api/sessions?date=${today}`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (response.ok) {
+                    const sessions = await response.json();
+                    const sessionsDiv = document.getElementById('today-sessions');
+
+                    if (sessions && sessions.length > 0) {
+                        let html = '<ul style="list-style: none; padding: 10px;">';
+                        sessions.forEach(session => {
+                            html += `
+                                <li style="padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 10px;">
+                                    <strong>${session.film_title}</strong><br>
+                                    Время: ${session.start} - ${session.end}<br>
+                                    Зал: ${session.hall}<br>
+                                    Цена: ${session.price} ₽
+                                </li>
+                            `;
+                        });
+                        html += '</ul>';
+                        sessionsDiv.innerHTML = html;
+                    } else {
+                        sessionsDiv.innerHTML = '<p>Сегодня нет сеансов</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки сеансов:', error);
+            }
+        }
+    </script>
+</body>
+</html>

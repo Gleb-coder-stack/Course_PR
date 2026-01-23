@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчет по фильмам</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.5;
+            margin: 2cm;
+            color: #000;
+            font-size: 14pt;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5cm;
+        }
+
+        .title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin-bottom: 0.5cm;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 14pt;
+            margin-bottom: 1cm;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1cm;
+            margin-bottom: 1cm;
+            font-size: 12pt;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 0.5cm;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .section {
+            margin-top: 1.5cm;
+        }
+
+        .section-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 0.5cm;
+            border-bottom: 1px solid #000;
+            padding-bottom: 0.2cm;
+        }
+
+        .signature {
+            margin-top: 3cm;
+            text-align: right;
+            font-size: 12pt;
+        }
+
+        .no-print {
+            text-align: center;
+            padding: 2cm;
+            background: #f5f5f5;
+            margin: 1cm;
+            border-radius: 10px;
+        }
+
+        .print-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 1rem;
+        }
+
+        .download-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 1rem;
+        }
+
+        .print-btn:hover {
+            background: #1976D2;
+        }
+
+        .download-btn:hover {
+            background: #45a049;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <h2>Отчет по фильмам</h2>
+        <p>Выберите способ просмотра отчета:</p>
+        <button class="download-btn" onclick="downloadWordReport()">Скачать Word документ</button>
+        <button class="print-btn" onclick="window.print()">Печать / Сохранить как PDF</button>
+        <button class="print-btn" onclick="window.close()">Закрыть</button>
+    </div>
+
+    <div class="header">
+        <div class="title">Каталог фильмов</div>
+        <div class="subtitle">Отчет о фильмотеке</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Список фильмов</div>
+        {% if films %}
+        <table>
+            <thead>
+                <tr>
+                    <th width="10%">ID</th>
+                    <th width="30%">Название фильма</th>
+                    <th width="60%">Описание</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for film in films %}
+                <tr>
+                    <td>{{ film.film_id }}</td>
+                    <td><strong>{{ film.title }}</strong></td>
+                    <td>{{ film.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="margin-top: 1cm; font-style: italic;">
+            Всего фильмов в каталоге: <strong>{{ films|length }}</strong>
+        </div>
+        {% else %}
+        <div style="text-align: center; font-style: italic; color: #666; padding: 2cm;">
+            В каталоге нет фильмов
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="signature">
+        Директор кинотеатра: ___________________ <br>
+        Дата: ___________________
+    </div>
+
+    <script>
+
+        function downloadWordReport() {
+        // Добавляем timestamp для обхода кэша
+        const timestamp = new Date().getTime();
+        window.open('/films-word-report?t=' + timestamp, '_blank');
+        }
+
+        window.onload = function() {
+            // Автопечать можно включить, раскомментировав следующую строку:
+            // setTimeout(function() { window.print(); }, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кинотеатр - Система управления</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <h1>Кинотеатр</h1>
+                <p>Система управления</p>
+            </div>
+
+            <div class="login-form">
+                <h2>Вход в систему</h2>
+
+                <div class="form-group">
+                    <label for="username">Имя пользователя</label>
+                    <input type="text" id="username" placeholder="Введите имя пользователя">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" placeholder="Введите пароль">
+                </div>
+
+                <button class="btn-login" onclick="login()">Войти</button>
+
+                <div class="error-message" id="error-message"></div>
+
+                <div class="demo-credentials">
+                    <h3>Тестовые учетные записи:</h3>
+                    <div class="credential-row">Администратор: admin / admin123</div>
+                    <div class="credential-row">Кассир: cashier / cashier123</div>
+                </div>
+
+                <div class="role-buttons">
+                    <button class="btn-admin" onclick="quickLogin('admin')">
+                        <span class="btn-icon">👑</span>
+                        Войти как Администратор
+                    </button>
+
+                    <button class="btn-cashier" onclick="quickLogin('cashier')">
+                        <span class="btn-icon">🎟️</span>
+                        Войти как Кассир
+                    </button>
+                </div>
+
+                <div class="footer">
+                    <p>Система управления кинотеатром © 2024</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>
