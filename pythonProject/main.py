@@ -5,7 +5,6 @@ import os
 from modules import auth, films, sessions, tickets, reports
 from excel_reports import router as excel_router
 from models import create_tables, test_connection
-import database
 
 app = FastAPI()
 
@@ -26,22 +25,29 @@ if not os.path.exists("templates"):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# Главная страница
+# Главная страница (публичная)
 @app.get("/")
 async def read_root():
     return FileResponse("templates/index.html")
 
 
-# Панель администратора
+# Панель администратора (только для авторизованных)
 @app.get("/admin")
 async def admin_dashboard():
     return FileResponse("templates/admin-dashboard.html")
 
 
-# Панель кассира
+# Панель кассира (только для авторизованных)
 @app.get("/cashier")
 async def cashier_dashboard():
     return FileResponse("templates/cashier-dashboard.html")
+
+
+# Страница с детальной информацией о фильме (публичная)
+@app.get("/film/{film_id}")
+async def film_details(film_id: int):
+    # Можно создать отдельный шаблон
+    return FileResponse("templates/index.html")
 
 
 # Проверка здоровья API

@@ -29,6 +29,41 @@ def get_db():
             conn.close()
 
 
+# Добавить в films.py
+
+@router.get("/api/films/public")
+async def get_public_films():
+    """Публичный доступ к фильмам (без авторизации)"""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id_movie, movie_title, movie_description, 
+                           duration_minutes, genre, age_rating, 
+                           release_year, director
+                    FROM movie 
+                    ORDER BY id_movie
+                """)
+                films_data = cur.fetchall()
+
+                films = []
+                for film in films_data:
+                    films.append({
+                        "id": film["id_movie"],
+                        "title": film["movie_title"],
+                        "description": film["movie_description"],
+                        "duration": film["duration_minutes"],
+                        "genre": film["genre"],
+                        "age_rating": film["age_rating"],
+                        "release_year": film["release_year"],
+                        "director": film["director"]
+                    })
+
+        return films
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # В функции get_films заменить запрос:
 @router.get("/api/films")
 async def get_films(current_user: dict = Depends(get_current_user)):

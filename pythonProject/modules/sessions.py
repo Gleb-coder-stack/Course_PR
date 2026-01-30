@@ -18,6 +18,64 @@ def get_db():
             conn.close()
 
 
+# Добавить в sessions.py
+
+@router.get("/api/sessions/public")
+async def get_public_sessions(date: str = None):
+    """Публичный доступ к сеансам (без авторизации)"""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                if date:
+                    cur.execute("""
+                        SELECT s.id_session, s.data_session, s.start_time, s.end_time,
+                               s.ticket_price, s.session_type, s.sold_tickets, s.max_tickets,
+                               m.movie_title, m.duration_minutes, m.age_rating,
+                               h.hall_name, h.capacity,
+                               (h.capacity - s.sold_tickets) as available_seats
+                        FROM session s 
+                        JOIN movie m ON s.id_movie = m.id_movie 
+                        JOIN halls h ON s.id_hall = h.id_hall
+                        WHERE s.data_session = %s AND h.is_active = TRUE
+                        ORDER BY s.start_time
+                    """, (date,))
+                else:
+                    cur.execute("""
+                        SELECT s.id_session, s.data_session, s.start_time, s.end_time,
+                               s.ticket_price, s.session_type, s.sold_tickets, s.max_tickets,
+                               m.movie_title, m.duration_minutes, m.age_rating,
+                               h.hall_name, h.capacity,
+                               (h.capacity - s.sold_tickets) as available_seats
+                        FROM session s 
+                        JOIN movie m ON s.id_movie = m.id_movie 
+                        JOIN halls h ON s.id_hall = h.id_hall
+                        WHERE h.is_active = TRUE
+                        ORDER BY s.data_session, s.start_time
+                    """)
+
+                sessions_data = cur.fetchall()
+                sessions = []
+                for session in sessions_data:
+                    sessions.append({
+                        "id": session["id_session"],
+                        "film_title": session["movie_title"],
+                        "date": session["data_session"].strftime("%Y-%m-%d"),
+                        "start": str(session["start_time"]),
+                        "end": str(session["end_time"]),
+                        "duration": session["duration_minutes"],
+                        "hall": session["hall_name"],
+                        "capacity": session["capacity"],
+                        "available_seats": session["available_seats"],
+                        "price": float(session["ticket_price"]) if session["ticket_price"] else 0,
+                        "type": session["session_type"],
+                        "age_rating": session["age_rating"]
+                    })
+
+                return sessions
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # В функции get_sessions заменить запрос:
 @router.get("/api/sessions")
 async def get_sessions(date: str = None, current_user: dict = Depends(get_current_user)):
@@ -213,6 +271,61 @@ async def delete_session(session_id: int, current_user: dict = Depends(get_curre
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка удаления сеанса: {str(e)}")
 
+# В функции get_public_sessions добавьте film_id в возвращаемые данные:
+async def get_public_sessions(date: str = None):
+    """Публичный доступ к сеансам (без авторизации)"""
+    try:
+        with get_db() as conn:
+            with conn.cursor() as cur:
+                if date:
+                    cur.execute("""
+                        SELECT s.id_session, s.id_movie, s.data_session, s.start_time, s.end_time,
+                               s.ticket_price, s.session_type, s.sold_tickets, s.max_tickets,
+                               m.movie_title, m.duration_minutes, m.age_rating,
+                               h.hall_name, h.capacity,
+                               (h.capacity - s.sold_tickets) as available_seats
+                        FROM session s 
+                        JOIN movie m ON s.id_movie = m.id_movie 
+                        JOIN halls h ON s.id_hall = h.id_hall
+                        WHERE s.data_session = %s AND h.is_active = TRUE
+                        ORDER BY s.start_time
+                    """, (date,))
+                else:
+                    cur.execute("""
+                        SELECT s.id_session, s.id_movie, s.data_session, s.start_time, s.end_time,
+                               s.ticket_price, s.session_type, s.sold_tickets, s.max_tickets,
+                               m.movie_title, m.duration_minutes, m.age_rating,
+                               h.hall_name, h.capacity,
+                               (h.capacity - s.sold_tickets) as available_seats
+                        FROM session s 
+                        JOIN movie m ON s.id_movie = m.id_movie 
+                        JOIN halls h ON s.id_hall = h.id_hall
+                        WHERE h.is_active = TRUE
+                        ORDER BY s.data_session, s.start_time
+                    """)
+
+                sessions_data = cur.fetchall()
+                sessions = []
+                for session in sessions_data:
+                    sessions.append({
+                        "id": session["id_session"],
+                        "film_id": session["id_movie"],  # Добавлено
+                        "film_title": session["movie_title"],
+                        "date": session["data_session"].strftime("%Y-%m-%d"),
+                        "start": str(session["start_time"]),
+                        "end": str(session["end_time"]),
+                        "duration": session["duration_minutes"],
+                        "hall": session["hall_name"],
+                        "capacity": session["capacity"],
+                        "available_seats": session["available_seats"],
+                        "price": float(session["ticket_price"]) if session["ticket_price"] else 0,
+                        "type": session["session_type"],
+                        "age_rating": session["age_rating"]
+                    })
+
+                return sessions
+    except Exception as e:
+        return {"error": str(e)}
 
 # Получить сеансы по дате
 @router.get("/api/sessions/date/{date}")

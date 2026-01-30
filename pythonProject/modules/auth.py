@@ -43,21 +43,33 @@ def authenticate_user(username: str, password: str):
         return None
 
 
-# Простая проверка ролей
 def check_permission(user: dict, required_permission: str):
     """Проверяет разрешения пользователя"""
-    role = user.get("role", "guest")
+    if not user:
+        role = "guest"  # Если пользователь не авторизован - гость
+    else:
+        role = user.get("role", "guest")
 
-    # Простая логика проверки прав
+    # Логика проверки прав
     if role == "admin":
         return True  # Админ имеет все права
     elif role == "cashier":
         # Кассир может только читать и создавать билеты
-        allowed_permissions = ["films:read", "sessions:read", "tickets:read", "tickets:create"]
+        allowed_permissions = [
+            "films:read",
+            "sessions:read",
+            "tickets:read",
+            "tickets:create",
+            "tickets:update",
+            "reports:basic"
+        ]
         return required_permission in allowed_permissions
     else:
-        # Гость может только читать
-        allowed_permissions = ["films:read", "sessions:read"]
+        # Гость может только читать публичную информацию
+        allowed_permissions = [
+            "films:public:read",
+            "sessions:public:read"
+        ]
         return required_permission in allowed_permissions
 
 
@@ -105,6 +117,16 @@ async def login(username: str, password: str):
         "username": user["username"],
         "full_name": user["full_name"]
     }
+
+@router.get("/api/films")
+async def get_films(current_user: dict = Depends(get_current_user)):
+    if not check_permission(current_user, "films:read"):
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
+
+@router.get("/api/sessions")
+async def get_sessions(date: str = None, current_user: dict = Depends(get_current_user)):
+    if not check_permission(current_user, "sessions:read"):
+        raise HTTPException(status_code=403, detail="Доступ запрещен")
 
 
 @router.get("/api/auth/me")
